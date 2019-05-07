@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<configuration>
+    <property name="pattern"
+              value="%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36}-[%line] - %msg%n"/>
+    <springProperty scope="context" name="log.path" source="spring.application.log.path"
+                    defaultValue="/data/logs/delay"/>
+    <appender name="STDOUT"
+              class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>${pattern}</pattern>
+            <charset>UTF-8</charset>
+        </encoder>
+    </appender>
+
+    <appender name="file" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>${log.path}/delay_info.%d{yyyyMMdd}.log</fileNamePattern>
+            <MaxHistory>30</MaxHistory>
+        </rollingPolicy>
+        <encoder>
+            <pattern>${pattern}</pattern>
+            <charset>UTF-8</charset>
+        </encoder>
+    </appender>
+    <!-- http -->
+    <appender name="http" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+            <level>INFO</level>
+        </filter>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>${log.path}/delay_http_analysis.%d{yyyyMMdd}.log</fileNamePattern>
+            <MaxHistory>30</MaxHistory>
+        </rollingPolicy>
+        <encoder>
+            <pattern>${pattern}</pattern>
+            <charset>UTF-8</charset>
+        </encoder>
+    </appender>
+
+    <logger name="http" level="INFO" additivity="true">
+        <appender-ref ref="http"/>
+    </logger>
+
+    <appender name="outgoing" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+            <level>INFO</level>
+        </filter>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>${log.path}/delay_outgoing.%d{yyyyMMdd}.log</fileNamePattern>
+            <MaxHistory>30</MaxHistory>
+        </rollingPolicy>
+        <encoder>
+            <pattern>${pattern}</pattern>
+            <charset>UTF-8</charset>
+        </encoder>
+    </appender>
+
+    <logger name="outgoing" level="INFO" additivity="true">
+        <appender-ref ref="outgoing"/>
+    </logger>
+
+    <!--root config  -->
+    <root>
+        <level value="INFO"/>
+        <appender-ref ref="file"/>
+    </root>
+
+    <root>
+        <level value="INFO"/>
+        <appender-ref ref="file"/>
+    </root>
+
+    <springProfile name="default">
+        <root>
+            <appender-ref ref="STDOUT"/>
+        </root>
+        <logger name="com.sober.delay" level="DEBUG"/>
+    </springProfile>
+
+</configuration>
