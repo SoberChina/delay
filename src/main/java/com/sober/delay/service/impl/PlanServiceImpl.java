@@ -6,6 +6,7 @@ import com.google.common.collect.Maps;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.sober.delay.common.Constant;
 import com.sober.delay.common.result.RestResult;
+import com.sober.delay.config.DelayProperties;
 import com.sober.delay.config.RabbitMqBeanConfig;
 import com.sober.delay.config.RedisEntityConfig;
 import com.sober.delay.dao.ExecuteLogDao;
@@ -42,12 +43,10 @@ import java.util.stream.Collectors;
 @Service
 public class PlanServiceImpl implements PlanService {
 
-
     /**
      * 阈值 threshold
      */
     private static final Long THRESHOLD = 60 * 1000L;
-
 
     @Autowired
     private RedisEntityConfig redisEntityConfig;
@@ -71,6 +70,9 @@ public class PlanServiceImpl implements PlanService {
     @Autowired
     private ExecuteLogDao executeLogDao;
 
+    @Autowired
+    private DelayProperties delayProperties;
+
     @Transactional(rollbackFor = Exception.class)
     @Override
     public PlanDto save(PlanParams planParams) {
@@ -81,7 +83,7 @@ public class PlanServiceImpl implements PlanService {
                 planParams.getExecuteTime().getTime() - System.currentTimeMillis() + Constant.FAULT_TOLERANT_REQUEST_TIME;
 
         //如果在job规定范围内
-        boolean flag = (expire < (Constant.ADVANCE_FLAG + Constant.TASK_CYCLE));
+        boolean flag = (expire < (Constant.ADVANCE_TIME + Constant.TASK_CYCLE));
 
 
         //控制分钟级别 去掉后可以按照毫秒级别;
@@ -162,12 +164,9 @@ public class PlanServiceImpl implements PlanService {
     @Override
     public void executePlan(PlanDto planDto, ExecuteType executeType) {
 
-        //check 数据
         Optional<PlanEntity> optional = planDao.findById(planDto.getId());
-
         //状态不一致消息丢弃
         if (!optional.isPresent() || optional.get().getState().equals(PlanStatus.DELETE.getCode())) {
-
             return;
         }
         //封装参数
@@ -184,32 +183,23 @@ public class PlanServiceImpl implements PlanService {
         }
         HttpEntity<Map<String, Object>> httpEntity = new HttpEntity(params, headers);
         RestResult restResult;
-
         ResponseEntity<String> stringResponseEntity;
-
-
         String request = JSON.toJSONString(params) + JSON.toJSONString(headers);
-        if (request != null && request.length() > Constant.LOG_LIMIT_LENGTH) {
+        if (request.length() > Constant.LOG_LIMIT_LENGTH) {
             request = request.substring(0, Constant.LOG_LIMIT_LENGTH);
         }
-
-        ExecuteLogEntity logEntity =
-                ExecuteLogEntity.builder().planId(planDto.getId()).executeType(executeType.getCode())
-                        .request(request).build();
+        ExecuteLogEntity logEntity = ExecuteLogEntity.builder().planId(planDto.getId())
+                .executeType(executeType.getCode()).request(request).build();
         try {
             //如果是 0走eureka调用否则走ip
             if (PlanType.EUREKA.getType().equals(planDto.getPlanType())) {
                 stringResponseEntity = innerRestTemplate.exchange(planDto.getCallbackUrl(),
-                        HttpMethod.resolve(planDto.getCallbackMethod().toUpperCase())
-                        , httpEntity, String.class);
+                        HttpMethod.resolve(planDto.getCallbackMethod().toUpperCase()), httpEntity, String.class);
             } else {
                 stringResponseEntity = restTemplate.exchange(planDto.getCallbackUrl(),
-                        HttpMethod.resolve(planDto.getCallbackMethod().toUpperCase())
-                        , httpEntity, String.class);
+                        HttpMethod.resolve(planDto.getCallbackMethod().toUpperCase()), httpEntity, String.class);
             }
-
             log.info("result:{}", JSON.toJSONString(stringResponseEntity));
-
         } catch (Exception e) {
             log.error(e.getMessage());
             String errorMsg = e.getMessage();
@@ -220,9 +210,7 @@ public class PlanServiceImpl implements PlanService {
             saveLog(logEntity);
             throw new BizException(Error.REST_TEMPLATE_IO_EXCEPTION);
         }
-
         try {
-
             MediaType mediaType;
             if (!Objects.isNull(stringResponseEntity) && (mediaType =
                     stringResponseEntity.getHeaders().getContentType()) != null) {
@@ -231,7 +219,6 @@ public class PlanServiceImpl implements PlanService {
                     response = response.substring(0, Constant.LOG_LIMIT_LENGTH);
                 }
                 logEntity.setResponse(response);
-
                 //判断mediaType 是否符合格式
                 boolean isContains =
                         MediaType.APPLICATION_JSON.includes(mediaType) || MediaType.APPLICATION_JSON_UTF8.includes(mediaType);
@@ -247,7 +234,6 @@ public class PlanServiceImpl implements PlanService {
                 logEntity.setResponse("error");
                 throw new BizException(Error.PLAN_EXECUTE_ERROR);
             }
-
         } finally {
             saveLog(logEntity);
         }
@@ -279,14 +265,24 @@ public class PlanServiceImpl implements PlanService {
         }
         rabbitTemplate.convertAndSend(RabbitMqBeanConfig.DELAY_TTL_DIRECT_EXCHANGE, routingKey,
                 JSON.toJSONString(planDto));
-
     }
 
     @Transactional(rollbackFor = Exception.class)
     @Override
     public void autoPush(Date beginTime, Date endTime) throws InterruptedException {
 
-        List<PlanEntity> planEntities = planDao.findPlanEntitiesByExecuteTimeBetweenAndFlag(beginTime, endTime, 0);
+        List<PlanEntity> planEntities;
+        switch (delayProperties.getLoadStrategy()) {
+            case LATEST:
+                planEntities = planDao.findPlanEntitiesByExecuteTimeBetweenAndFlag(beginTime, endTime, 0);
+                break;
+            case EARLIEST:
+                planEntities = planDao.findPlanEntitiesByExecuteTimeBeforeAndFlag(endTime, 0);
+                break;
+            default:
+                planEntities = planDao.findPlanEntitiesByExecuteTimeBetweenAndFlag(beginTime, endTime, 0);
+        }
+
         if (CollectionUtils.isEmpty(planEntities)) {
             return;
         }

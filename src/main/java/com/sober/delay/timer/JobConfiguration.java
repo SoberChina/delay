@@ -41,7 +41,7 @@ public class JobConfiguration {
         String group = "every_day";
         //每天23点10分执行一次
         CronScheduleBuilder scheduleBuilder = CronScheduleBuilder.cronSchedule("0 10 23 1/1 * ?");
-//        CronScheduleBuilder scheduleBuilder = CronScheduleBuilder.cronSchedule("0 0/2 * * * ?");
+        //        CronScheduleBuilder scheduleBuilder = CronScheduleBuilder.cronSchedule("0 0/2 * * * ?");
         //创建任务
         JobDetail jobDetail = JobBuilder.newJob(DeleteDataJob.class).withIdentity(name, group).build();
         //创建任务触发器

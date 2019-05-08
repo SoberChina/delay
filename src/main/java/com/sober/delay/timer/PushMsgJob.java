@@ -37,8 +37,8 @@ public class PushMsgJob extends QuartzJobBean {
         try {
             if (redisLock.acquire()) {
                 Long timeStamp = System.currentTimeMillis();
-                planService.autoPush(new Date(timeStamp + Constant.ADVANCE_FLAG),
-                        new Date(timeStamp + Constant.TASK_CYCLE + Constant.ADVANCE_FLAG));
+                planService.autoPush(new Date(timeStamp + Constant.ADVANCE_TIME - Constant.JOB_FAULT_TOLERANT_TIME),
+                        new Date(timeStamp + Constant.TASK_CYCLE + Constant.ADVANCE_TIME));
                 //释放锁
                 redisLock.release();
             }

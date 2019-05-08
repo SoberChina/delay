@@ -17,7 +17,6 @@ import java.util.Date;
 @Repository
 public interface ExecuteLogDao extends CrudRepository<ExecuteLogEntity, Integer> {
 
-
     /**
      * 删除数据
      *
@@ -27,4 +26,5 @@ public interface ExecuteLogDao extends CrudRepository<ExecuteLogEntity, Integer>
     @Modifying
     @Query(value = "delete from execute_log where create_time < :createTime", nativeQuery = true)
     void deleteExecuteLogEntitiesByCreateTimeBefore(@Param("createTime") Date createTime);
+
 }

@@ -9,7 +9,7 @@
  5. 调度时间无限制(小于一分钟的立马执行)。 
  6. 支持内部(eureka)已经外部调用，任务planType 区分。
  7. 支持自动删除数据任务(执行时间之前的数据)`auto.delete.enabled=true` 开启自动删除任务默认关闭`auto.delete.retainDays`删除执行日期当前时间之前的数据默认5天
-
+ 8. 过期未执行任务配置是否进行消费执行。
 
 #### **Project structure**:
 

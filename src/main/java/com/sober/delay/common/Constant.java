@@ -19,7 +19,12 @@ public interface Constant {
     /**
      * 提前30分钟初始化到rabbitmq中
      */
-    Long ADVANCE_FLAG = 30 * 60 * 1000L;
+    Long ADVANCE_TIME = 30 * 60 * 1000L;
+
+    /**
+     * 任务容错时间
+     */
+    Long JOB_FAULT_TOLERANT_TIME = 10 * 60 * 1000L;
 
     int LOG_LIMIT_LENGTH = 250;
 
