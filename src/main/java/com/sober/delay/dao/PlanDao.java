@@ -1,6 +1,8 @@
 package com.sober.delay.dao;
 
 import com.sober.delay.entity.PlanEntity;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
@@ -79,6 +81,15 @@ public interface PlanDao extends CrudRepository<PlanEntity, Integer> {
     @Modifying
     @Query(value = "delete from plan where execute_time < :executeTime", nativeQuery = true)
     void deletePlanEntitiesByExecuteTimeBefore(@Param("executeTime") Date executeTime);
+
+
+    /**
+     * 分页
+     *
+     * @param pageable
+     * @return
+     */
+    Page<PlanEntity> findAll(Pageable pageable);
 
 
 }

@@ -1,5 +1,6 @@
 package com.sober.delay.service;
 
+import com.sober.delay.common.result.Page;
 import com.sober.delay.entity.dto.PlanDto;
 import com.sober.delay.entity.params.PlanParams;
 import com.sober.delay.enums.ExecuteType;
@@ -20,6 +21,15 @@ public interface PlanService {
     PlanDto modifyByCode(PlanParams planParams);
 
     List<PlanDto> list();
+
+    /**
+     * 分页查询
+     *
+     * @param page     页码
+     * @param pageSize 每页大小
+     * @return
+     */
+    Page<PlanDto> list(Integer page, Integer pageSize);
 
     PlanDto findByCode(String planCode);
 

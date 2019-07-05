@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org">
+
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+
+<div class="pagination-div" th:fragment="page(current, pages, url, urlPara)">
+    <nav class="pagination" role="navigation" aria-label="pagination">
+        <ul class="pagination">
+            <li><a th:if="${current>1}" aria-label="Previous" class="previous"
+                   th:href="@{${url} + '?' + ${urlPara} + '=' + ${current - 1}}"> <span
+                    aria-hidden="true">上一页</span></a></li>
+            <li><a th:if="${current==1}" aria-label="Previous" class="previous" disabled="">
+                <span aria-hidden="true">上一页</span> </a></li>
+            <li><a class="pagination-link" th:classappend="${current == 1} ? 'is-current'"
+                   th:href="@{${url} + '?' + ${urlPara} + '=1'}" th:text="1">1</a></li>
+            <th:block th:if="${current<6 && current != pages}" th:each="i: ${#numbers.sequence(2, 10)}">
+                <li><a class="pagination-link" th:classappend="${current == i} ? 'is-current'"
+                       th:href="@{${url} + '?' + ${urlPara} + '=' + ${i}}" th:text="${i}"></a></li>
+            </th:block>
+            <li th:if="${current>5}"><span class="pagination-ellipsis">&hellip;</span></li>
+            <th:block th:if="${current>5 && ((pages - current)>5)}">
+                <li th:each="i: ${#numbers.sequence(current - 4,current + 4)}">
+                    <a class="pagination-link" th:classappend="${current == i} ? 'is-current'"
+                       th:href="@{${url} + '?' + ${urlPara} + '=' + ${i}}" th:text="${i}"></a></li>
+            </th:block>
+            <th:block th:if="${(pages - current) < 6}">
+                <th:block th:each="index : ${#numbers.sequence(1, 5)}">
+                    <th:block th:if="${(pages - current) == index}"
+                              th:each="i: ${#numbers.sequence(current - 4 - (5 - index), pages - 1)}">
+                        <li><a class="pagination-link" th:classappend="${current == i} ? 'is-current'"
+                               th:href="@{${url} + '?' + ${urlPara} + '=' + ${i}}" th:text="${i}"></a></li>
+                    </th:block>
+                </th:block>
+            </th:block>
+            <th:block th:if="${current == pages}" th:each="i: ${#numbers.sequence(current - 9, current - 1)}">
+                <li><a class="pagination-link" th:classappend="${current == i} ? 'is-current'"
+                       th:href="@{${url} + '?' + ${urlPara} + '=' + ${i}}" th:text="${i}"></a></li>
+            </th:block>
+            <li th:if="${pages - current} > 5"><span class="pagination-ellipsis">&hellip;</span></li>
+            <li><a class="pagination-link" th:classappend="${current == pages} ? 'is-current'"
+                   th:href="@{${url} + '?' + ${urlPara} + '=' + ${pages}}" th:text="${pages}"></a></li>
+            <li><a th:if="${current} < ${pages}" aria-label="Next" class="next"
+                   th:href="@{${url} + '?' + ${urlPara} + '=' + ${current + 1}}"><span aria-hidden="true">下一页</span></a>
+            </li>
+            <li><a th:if="${current} == ${pages}" aria-label="Next" class="next" disabled=""> <span aria-hidden="true">下一页</span></a>
+            </li>
+        </ul>
+    </nav>
+</div>
+</body>
+</html>

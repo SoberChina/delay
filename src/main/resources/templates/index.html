@@ -1,0 +1,78 @@
+<!DOCTYPE HTML>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="utf-8"/>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1"/>
+    <title>计划管理界面</title>
+    <link th:href="@{~/static/css/bootstrap.min.css}" rel="stylesheet"/>
+    <link th:href="@{~/static/css/bootstrapValidator.min.css}" rel="stylesheet"/>
+    <link th:href="@{~/static/css/style.css}" rel="stylesheet"/>
+    <link th:href="@{~/static/css/plugins/iCheck/custom.css}" rel="stylesheet"/>
+    <link rel="shortcut icon" th:href="@{~/static/favicon.ico}"/>
+    <style type="text/css">
+        table.table {
+            background: #FFFFFF;
+            border: 2px;
+            width: 90%;
+            margin: auto;
+            text-align: center;
+            vertical-align: middle;
+        }
+
+        table.table th, table.table tr,table.table tr td {
+            text-align: center;
+            vertical-align: middle !important;
+            word-break: break-all;
+        }
+
+        div.pagination-div {
+            text-align: center;
+        }
+
+    </style>
+</head>
+<body>
+<div class="pagination-div"
+     th:replace="~{common/page.html :: page(${planList.getPage()}, ${planList.getTotalPages()}, '/plan/index', 'page') }"></div>
+
+<table class="table" style="table-layout:fixed">
+    <tr>
+        <td style="display:none">id</td>
+        <td align="center">计划编码</td>
+        <td align="center">计划名称</td>
+        <td align="center">回调地址</td>
+        <td align="center">请求方式</td>
+        <td align="center">参数</td>
+        <td align="center">请求头</td>
+        <td align="center">请求类型</td>
+        <td align="center">执行时间</td>
+        <td align="center">创建时间</td>
+        <td align="center">状态</td>
+    </tr>
+    <!--/*@thymesVar id="planList" type="com.sober.delay.common.result.Page<com.sober.delay.entity.dto.PlanDto>"*/-->
+    <tr th:each="plan : ${planList.getItems()}">
+        <td style="display:none" th:text="${plan.getId()}"></td>
+        <td th:text="${plan.getPlanCode()}"></td>
+        <td th:text="${plan.getPlanName()}"></td>
+        <td th:text="${plan.getCallbackUrl()}"></td>
+        <td th:text="${plan.getCallbackMethod()}"></td>
+        <td th:text="${plan.getParams()}"></td>
+        <td th:text="${plan.getHeaders()}"></td>
+        <td th:text="${plan.getPlanType()==0}? '内部调用':'外部调用'"></td>
+        <td th:text="${plan.getExecuteTime()}"></td>
+        <td th:text="${plan.getCreateTime()}"></td>
+        <td th:text="(${plan.getState()==0}? '待执行' :
+( ${plan.getState() ==1}?'执行成功':(
+  ${plan.getState() ==2}?'执行失败':(
+   ${plan.getState() ==9}?'已删除':'未知状态'))))
+"></td>
+        <!--<td th:style="${plan.getState()==0}? '':'display:none'">-->
+        <!--<input type="button" th:value="修改"/><input type="button" th:value="删除"/>-->
+        <!--</td>-->
+    </tr>
+</table>
+<div class="pagination-div"
+     th:replace="~{common/page.html :: page(${planList.getPage()}, ${planList.getTotalPages()}, '/plan/index', 'page') }"></div>
+</body>
+</html>

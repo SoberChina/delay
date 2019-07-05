@@ -5,6 +5,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.sober.delay.common.Constant;
+import com.sober.delay.common.result.Page;
 import com.sober.delay.common.result.RestResult;
 import com.sober.delay.config.DelayProperties;
 import com.sober.delay.config.RabbitMqBeanConfig;
@@ -24,6 +25,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.*;
 import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Service;
@@ -138,6 +141,21 @@ public class PlanServiceImpl implements PlanService {
             return Lists.newArrayList();
         }
         return build(Lists.newArrayList(planEntities));
+    }
+
+    @Override
+    public Page<PlanDto> list(Integer page, Integer pageSize) {
+        /**
+         * jpa pageable page is zero-based page index
+         * @see PageRequest#of(int, int)
+         * @see org.springframework.data.domain.AbstractPageRequest#AbstractPageRequest(int, int)
+         */
+        Pageable pageable = PageRequest.of(page - 1, pageSize);
+        org.springframework.data.domain.Page<PlanEntity> planEntities = planDao.findAll(pageable);
+
+        return Page.<PlanDto>builder().items(build(planEntities.getContent())).page(page).pageSize(pageSize)
+                .total(planEntities.getTotalElements()).first(planEntities.isFirst()).last(planEntities.isLast())
+                .empty(planEntities.isEmpty()).totalPages(planEntities.getTotalPages()).build();
     }
 
     @Override
