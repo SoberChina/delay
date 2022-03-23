@@ -21,7 +21,7 @@
         <guava.version>24.1.1</guava.version>
         <commons-lang3.version>3.6</commons-lang3.version>
         <fastjson.version>1.2.51</fastjson.version>
-        <httpcomponents.version>4.5.6</httpcomponents.version>
+        <httpcomponents.version>4.5.13</httpcomponents.version>
         <druid-spring-boot-starter.version>1.1.10</druid-spring-boot-starter.version>
     </properties>
 
